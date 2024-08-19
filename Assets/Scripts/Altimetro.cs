@@ -8,6 +8,7 @@ public class Altimetro : MonoBehaviour
     // Atributos.
     //===========
 
+    //[HideInInspector]
     public float altura;
 
     //=========

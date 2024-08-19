@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class IMU : MonoBehaviour
-{ 
+{
     //===========
     // Atributos.
     //===========
@@ -12,19 +12,28 @@ public class IMU : MonoBehaviour
     // Atributos para roll, pitch, yaw, posición y altura.
     //----------------------------------------------------
 
+    [HideInInspector]
     public float roll;
+    [HideInInspector]
     public float pitch;
+    [HideInInspector]
     public float yaw;
 
     //-----------------
     // Tasas de cambio.
     //-----------------
 
+    [HideInInspector]
     public float tasaCambioRoll;
+    [HideInInspector]
     public float tasaCambioPitch;
+    [HideInInspector]
     public float tasaCambioYaw;
+    [HideInInspector]
     public float tasaCambioYB;
+    [HideInInspector]
     public float tasaCambioXB;
+    [HideInInspector]
     public float tasaCambioZB;
 
     //=========

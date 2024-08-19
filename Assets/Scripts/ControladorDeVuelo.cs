@@ -1,9 +1,7 @@
+using CalculoMatricial; // Clase creada para el calculo matricial.
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using CalculoMatricial; // Clase creada para el calculo matricial.
 
 public class ControladorDeVuelo : MonoBehaviour
 {
@@ -11,89 +9,135 @@ public class ControladorDeVuelo : MonoBehaviour
     // Atributos.
     //===========
 
+    //---------------------------------------------------
+    // Habilitación/deshabilitación controlador de vuelo.
+    //---------------------------------------------------
+
+    [HideInInspector]
+    public bool onOff;
+
+    //---------------------------
+    // Mando manual o automático.
+    //---------------------------
+
+    [HideInInspector]
+    public bool manAut = true; // Si hay señal RC, automáticamente pasa a manual. Del mismo RC pasa a automático.
+
+    //----------------------
+    // Computadora de vuelo.
+    //----------------------
+
+    public ComputadoraDeVuelo computadora;
+
     //------------------------
     // Comandos de movimiento.
     //------------------------
 
+    [HideInInspector]
     public float comandoRoll;
+    [HideInInspector]
     public float comandoPitch;
+    [HideInInspector]
     public float comandoYaw;
-    public float comandoEmpuje;
+    [HideInInspector]
+    public float comandoAltitud;
 
     //-------------------------
     // Input Scaling Constants.
     //-------------------------
    
-    private float kphi = 0.3030f;        // Constante de escalado para comando de roll.
-    private float ktheta = 0.3030f;      // Constante de escalado para comando de pitch.
-    private float kpsi = 0.0027f;        // Constante de escalado para comando de yaw.
-    private float kaltura = 0.0028f;     // Constante de escalado para comando de altitud.
+    private float kPhi = 0.3030f;        // Constante de escalado para comando de roll.
+    private float kTheta = 0.3030f;      // Constante de escalado para comando de pitch.
+    private float kPsi = 0.0027f;        // Constante de escalado para comando de yaw.
+    private float kAltura = 0.0028f;     // Constante de escalado para comando de altitud.
 
     //------------------------------------
     // Referencias actuales de movimiento.
     //------------------------------------
 
-    private float rphi = 0f;        // Referencia actual de roll.
-    private float rtheta = 0f;      // Referencia actual de pitch.
-    private float rpsi = 0f;        // Referencia actual de yaw.
-    private float raltura = 0.807f; // Referencia actual de altitud.
+    [HideInInspector]
+    public float rPhi = 0f;        // Referencia actual de roll.
+    [HideInInspector]
+    public float rTheta = 0f;      // Referencia actual de pitch.
+    [HideInInspector]
+    public float rPsi = 0f;        // Referencia actual de yaw.
+    [HideInInspector]
+    public float rAltura = 0f;     // Referencia actual de altitud.
 
     //---------------------------------------
     // Referencias máximas para Roll y Pitch.
     //---------------------------------------
 
-    private float refmaxphi = 15f * Mathf.Deg2Rad;
-    private float refmaxtheta = 15f * Mathf.Deg2Rad;
+    [HideInInspector]
+    public float refPhiMax = 15f * Mathf.Deg2Rad;
+    [HideInInspector]
+    public float refThetaMax = 15f * Mathf.Deg2Rad;
+
+    //-----------------------------
+    // Referencia de la superficie.
+    //-----------------------------
+
+    [HideInInspector]
+    public float rSuperficie = 0f;
+
+    //-----------------------------
+    // Referencia de altura máxima.
+    //-----------------------------
+
+    private float rAlturaMax = 55f;       // Altura máxima de 30 m respecto del suelo establecido.
 
     //-------------------------------------
     // Constantes de ganancia proporcional.
     //-------------------------------------
 
-    private float kpphi = 0.1176f;        // Constante de ganacia proporcional en control de roll.
-    private float kptheta = 0.1176f;      // Constante de ganacia proporcional en control de pitch.
-    private float kppsi = 0.1176f;       // Constante de ganacia proporcional en control de yaw.
-    private float kpaltura = 12.3973f;    // Constante de ganacia proporcional en control de altitud.
+    private float kpPhi = 0.1176f;        // Constante de ganacia proporcional en control de roll.
+    private float kpTheta = 0.1176f;      // Constante de ganacia proporcional en control de pitch.
+    private float kpPsi = 0.1176f;        // Constante de ganacia proporcional en control de yaw.
+    private float kpAltura = 12.3973f;    // Constante de ganacia proporcional en control de altitud.
 
     //---------------------------------
     // Constantes de ganancia integral.
     //---------------------------------
 
-    private float kiphi = 0.0116f;        // Constante de ganacia integral en control de roll.
-    private float kitheta = 0.0116f;      // Constante de ganacia integral en control de pitch.
-    private float kipsi = 0.0146f;        // Constante de ganacia integral en control de yaw.
-    private float kialtura = 0.0146f;     // Constante de ganacia integral en control de altitud.
+    private float kiPhi = 0.0116f;        // Constante de ganacia integral en control de roll.
+    private float kiTheta = 0.0116f;      // Constante de ganacia integral en control de pitch.
+    private float kiPsi = 0.0146f;        // Constante de ganacia integral en control de yaw.
+    private float kiAltura = 0.0146f;     // Constante de ganacia integral en control de altitud.
 
     //-----------------------------------
     // Constantes de ganancia derivativa.
     //-----------------------------------
 
-    private float kdphi = 0.0781f;        // Constante de ganacia derivativa en control de roll.
-    private float kdtheta = 0.0781f;      // Constante de ganacia derivativa en control de pitch.
-    private float kdpsi = 0.0781f;        // Constante de ganacia derivativa en control de yaw.
-    private float kdaltura = 16.4687f;    // Constante de ganacia derivativa en control de altitud.
+    private float kdPhi = 0.0781f;        // Constante de ganacia derivativa en control de roll.
+    private float kdTheta = 0.0781f;      // Constante de ganacia derivativa en control de pitch.
+    private float kdPsi = 0.0781f;        // Constante de ganacia derivativa en control de yaw.
+    private float kdAltura = 16.4687f;    // Constante de ganacia derivativa en control de altitud.
 
     //--------------------------------------------------------------------
     // Tolerancia para evitar oscilaciones que son posiblemente numéricas.
     //--------------------------------------------------------------------
 
-    private float tol = 1e-5f;
+    private float tol = 1e-3f;
 
     //-------------------------------
     // Unidad Inercial de navegacion.
     //-------------------------------
 
+    [HideInInspector]
     public IMU imu; // Unidad de medición inercial.
 
     //-----------------------
     // Altímetro barométrico.
     //-----------------------
 
+    [HideInInspector]
     public Altimetro altBar;
 
     //------------------------
     // Conjuntos motor hélice.
     //------------------------
 
+    [HideInInspector]
     public MotorHelice[] motores; // Conjuntos motor-hélice.
 
     //-------------------------------------------
@@ -112,36 +156,40 @@ public class ControladorDeVuelo : MonoBehaviour
     // Errores.
     //---------
 
-    private float ephi = 0f;         // Error en el roll.
-    private float etheta = 0f;       // Error en el roll.
-    private float epsi = 0f;         // Error en el roll.
-    private float ealtura = 0f;      // Error en el roll.
+    private float ePhi = 0f;         // Error en el roll.
+    private float eTheta = 0f;       // Error en el pitch.
+    private float ePsi = 0f;         // Error en el yaw.
+    private float eAltura = 0f;      // Error en la altitud.
 
     //--------------------
     // Errores anteriores.
     //--------------------
 
-    private float eaphi = 0f;        // Error anterior en roll.
-    private float eatheta = 0f;      // Error anterior en roll.
-    private float eapsi = 0f;        // Error anterior en roll.
-    private float eaaltura = 0f;     // Error anterior en roll.
+    private float eaPhi = 0f;        // Error anterior en roll.
+    private float eaTheta = 0f;      // Error anterior en roll.
+    private float eaPsi = 0f;        // Error anterior en roll.
+    private float eaAltura = 0f;     // Error anterior en roll.
 
     //----------------------
     // Sumatorias del error.
     //----------------------
 
-    private float esphi = 0f;        // Sumatoria del error en roll.
-    private float estheta = 0f;      // Sumatoria del error en pitch.
-    private float espsi = 0f;        // Sumatoria del error en yaw.
-    private float esaltura = 0f;     // Sumatoria del error en altitud.
+    private float esPhi = 0f;        // Sumatoria del error en roll.
+    private float esTheta = 0f;      // Sumatoria del error en pitch.
+    private float esPsi = 0f;        // Sumatoria del error en yaw.
+    private float esAltura = 0f;     // Sumatoria del error en altitud.
 
     //------------------------------------------
     // Acciones de control para cada movimiento.
     //------------------------------------------
 
+    [HideInInspector]
     public float accionRoll;
+    [HideInInspector]
     public float accionPitch;
+    [HideInInspector]
     public float accionYaw;
+    [HideInInspector]
     public float accionEmpuje;
 
     private float[,] accionesControl; // Acciones de control colocadas en un vector.
@@ -194,150 +242,240 @@ public class ControladorDeVuelo : MonoBehaviour
                 motores[i].sentido = (int)Mathf.Pow(-1, i + 1);
             }
         }
+
+        // El controlador arranca inhabilitado.
+        onOff = false;
+
+        // El controlador arranca en manual.
+        manAut = true;
     }
+
+    //---------------------------------------------------------
+    // Habilitación / Deshabilitación del controlador de vuelo.
+    //---------------------------------------------------------
+    private void OnControladorOnOff()
+    {
+        onOff ^= true; // Cada vez que se llama el método, cambiamos el valor del flag.
+    }
+
+    //-----------------------------------------------------------------------
+    // Habilitación / Deshabilitación del controlador automático de posición.
+    //-----------------------------------------------------------------------
+    private void OnPosicionAutomatica()
+    {
+        if (onOff) // Si se encendió el control...
+        {
+            bool anterior = manAut;
+            if (anterior == false) // Si estaba encendido el control automático...
+            {
+                // Actualizamos referencias para que cuando se encienda el control manual otra vez, se estabilice.
+                ResetearReferencias();
+            }
+            manAut ^= true; // Cada vez que se llama el método, se cambia el flag.
+            computadora.automatico = !manAut;
+        }
+    }
+
+    //--------------------------------------------------------------------
+    // Seteo de coordenadas automáticas para volver a la posición de Home.
+    //--------------------------------------------------------------------
+    /*
+    private void OnRetornoHome()
+    {
+        if(!manAut) // Si nos encontramos en el modo automático.
+        {
+            // Buscamos el GameObject con el tag especificado como "Home".
+            GameObject home = GameObject.FindWithTag("Home");
+            // Verifica si se encontró el objeto
+            if (home != null)
+            {
+                // Obtémos las coordenadas (posición) del objeto.
+                computadora.rX = home.transform.position.x;
+                computadora.rZ = home.transform.position.z;
+                computadora.rAlturaComputadora = 28f; // Posicionamos aprox. 2 m sobre plataforma.
+            }
+        }
+    }
+    */
 
     //---------------------------
     // Actualización de comandos.
     //---------------------------
 
-    private void OnComandoEmpujeYaw(InputValue comandoEY)
+    private void OnComandoAltitudYaw(InputValue comandoEY)
     {
-        comandoEmpuje = comandoEY.Get<Vector2>().y;
+        comandoAltitud = comandoEY.Get<Vector2>().y;
         comandoYaw = comandoEY.Get<Vector2>().x;
     }
 
     private void OnComandoRollPitch(InputValue comandoRP)
     {
         comandoPitch = -1 * comandoRP.Get<Vector2>().y; // Invierto el comando de Pitch.
-        comandoRoll = comandoRP.Get<Vector2>().x; 
+        comandoRoll = comandoRP.Get<Vector2>().x;
+    }
+
+    //---------------------------------------------
+    // Detector de posición de apoyo de referencia.
+    //---------------------------------------------
+    void OnCollisionEnter(Collision collision)
+    {
+        // Detectamos el contacto con el objeto.
+        if (collision.gameObject.CompareTag("LandingSurface"))
+        {
+            // Guardamos la altitud mínima permitida.
+            rSuperficie = transform.position.y;
+        }
+    }
+
+    //-------------------------------------------------
+    // Actualización de referencias por control remoto.
+    //-------------------------------------------------
+
+    public void ActualizarReferenciasRC()
+    {
+        // Actualización de referencia de altitud.
+
+        if (comandoAltitud > 0)
+        {
+            rAltura += kAltura * comandoAltitud;
+        }
+        else if (comandoAltitud < 0)
+        {
+            rAltura += 0.1f * kAltura * comandoAltitud; // Hacemos esto así para que no parezca que desploma.
+        }
+        if (rAltura < rSuperficie)
+        {
+            rAltura = rSuperficie;
+        }
+        else if (rAltura > rAlturaMax) // Máxima altura permitida.
+        {
+            rAltura = rAlturaMax;
+        }
+
+        // Actualización de referencia de yaw.
+
+        rPsi += kPsi * comandoYaw;
+        if (rPsi > Mathf.PI)
+        {
+            rPsi -= 2 * Mathf.PI;
+        }
+        else if (rPsi < -1 * Mathf.PI)
+        {
+            rPsi += 2 * Mathf.PI;
+        }
+
+        // Actualización de referencia de pitch.
+
+        if (Mathf.Abs(comandoPitch) > 0) // Si existe un comando de Pitch...
+        {
+            rTheta += kTheta * comandoPitch;
+            if (Mathf.Abs(rTheta) > refThetaMax) // Si la referencia excede en módulo los 45°, saturamos.
+            {
+                rTheta = Mathf.Sign(rTheta) * refThetaMax;
+            }
+        }
+        else // Caso contrario, llevamos referencia a 0.
+        {
+            rTheta = 0f;
+        }
+
+        // Actualización de referencia de roll.
+
+        if (Mathf.Abs(comandoRoll) > 0) // Si existe un comando de Roll...
+        {
+            rPhi += kPhi * comandoRoll;
+            if (Mathf.Abs(rPhi) > refPhiMax) // Si la referencia excede en módulo los 45°, saturamos.
+            {
+                rPhi = Mathf.Sign(rPhi) * refPhiMax;
+            }
+        }
+        else // Caso contrario, llevamos referencia a 0.
+        {
+            rPhi = 0f;
+        }
     }
 
     //-----------------------------------
     // Actualizacion acciones de control.
     //-----------------------------------
 
-    // Antes de llamar a estos métodos se debe realizar una actualización del giroscopio.
-
-    public void AccionControlRoll(float deltaTime)
+    public void AccionControlRoll(float refRoll, float deltaTime)
     {
-
-        // Actualizamos la referencia de roll.
-        if (Mathf.Abs(comandoRoll) > 0) // Si existe un comando de Roll...
-        {
-            rphi += kphi * comandoRoll;
-            if (Mathf.Abs(rphi) > refmaxphi) // Si la referencia excede en módulo los 45°, saturamos.
-            {
-                rphi = Mathf.Sign(rphi) * refmaxphi;
-            }
-        }
-        else // Caso contrario, llevamos referencia a 0.
-        {
-            rphi = 0f;
-        }
-
         // Error.
-        ephi = rphi - imu.roll;
-        ephi = ephi > Mathf.PI ? ephi -= 2 * Mathf.PI : (ephi < -1*Mathf.PI ? ephi += 2 * Mathf.PI : ephi); // Reacondicionamos en funcion de la discontinuidad.
+        ePhi = refRoll - imu.roll;
+        ePhi = ePhi > Mathf.PI ? ePhi -= 2 * Mathf.PI : (ePhi < -1*Mathf.PI ? ePhi += 2 * Mathf.PI : ePhi); // Reacondicionamos en funcion de la discontinuidad.
 
         // Actualizamos la sumatoria de los errores.
-        esphi += ephi;
+        esPhi += ePhi;
 
         // Calculamos la acción de control.
-        accionRoll = kpphi * ephi + kiphi * esphi * deltaTime + kdphi * (ephi - eaphi) / deltaTime;
+        accionRoll = kpPhi * ePhi + kiPhi * esPhi * deltaTime + kdPhi * (ePhi - eaPhi) / deltaTime;
         accionRoll = (accionRoll < tol && accionRoll > -tol) ? accionRoll = 0f : accionRoll; // Eliminamos pequeñas oscilaciones innecesarias.
 
         // Actualizamos el error anterior.
-        eaphi = ephi;
+        eaPhi = ePhi;
     }
 
-    public void AccionControlPitch(float deltaTime)
+    public void AccionControlPitch(float refTheta, float deltaTime)
     {
-
-        // Actualizamos la referencia de pitch.
-        if(Mathf.Abs(comandoPitch) > 0) // Si existe un comando de Pitch...
-        {
-            rtheta += ktheta * comandoPitch;
-            if(Mathf.Abs(rtheta) > refmaxtheta) // Si la referencia excede en módulo los 45°, saturamos.
-            {
-                rtheta = Mathf.Sign(rtheta) * refmaxtheta;
-            }
-        }
-        else // Caso contrario, llevamos referencia a 0.
-        {
-            rtheta = 0f;
-        }
-
         // Error.
-        etheta = rtheta - imu.pitch;
-        etheta = etheta > Mathf.PI ? etheta -= 2 * Mathf.PI : (etheta < -1 * Mathf.PI ? etheta += 2 * Mathf.PI : etheta); // Reacondicionamos en funcion de la discontinuidad.
+        eTheta = refTheta - imu.pitch;
+        eTheta = eTheta > Mathf.PI ? eTheta -= 2 * Mathf.PI : (eTheta < -1 * Mathf.PI ? eTheta += 2 * Mathf.PI : eTheta); // Reacondicionamos en funcion de la discontinuidad.
 
         // Actualizamos la sumatoria de los errores.
-        estheta += etheta;
+        esTheta += eTheta;
 
         // Calculamos la acción de control.
-        accionPitch = kptheta * etheta + kitheta * estheta * deltaTime + kdtheta * (etheta - eatheta) / deltaTime;
+        accionPitch = kpTheta * eTheta + kiTheta * esTheta * deltaTime + kdTheta * (eTheta - eaTheta) / deltaTime;
         accionPitch = (accionPitch < tol && accionPitch > -tol) ? accionPitch = 0f : accionPitch; // Eliminamos pequeñas oscilaciones innecesarias.
 
         // Actualizamos el error anterior.
-        eatheta = etheta;
+        eaTheta = eTheta;
     }
 
-    public void AccionControlYaw(float deltaTime) // Seguir revisando acá.
+    public void AccionControlYaw(float refPsi, float deltaTime) // Seguir revisando acá.
     {
-
-        // Actualizamos la referencia de yaw.
-        rpsi += kpsi * comandoYaw;
-        if(rpsi > Mathf.PI)
-        {
-            rpsi -= 2 * Mathf.PI;
-        }
-        else if(rpsi < -1 * Mathf.PI)
-        {
-            rpsi += 2 * Mathf.PI;
-        }
-
         // Error.
-        epsi = rpsi - imu.yaw;
-        epsi = epsi > Mathf.PI ? epsi -= 2 * Mathf.PI : (epsi < -1 * Mathf.PI ? epsi += 2 * Mathf.PI : epsi); // Reacondicionamos en funcion de la discontinuidad.
+        ePsi = refPsi - imu.yaw;
+        ePsi = ePsi > Mathf.PI ? ePsi -= 2 * Mathf.PI : (ePsi < -1 * Mathf.PI ? ePsi += 2 * Mathf.PI : ePsi); // Reacondicionamos en funcion de la discontinuidad.
 
         // Actualizamos la sumatoria de los errores.
-        espsi += epsi;
+        esPsi += ePsi;
 
         // Calculamos la acción de control.
-        accionYaw = kppsi * epsi + kipsi * espsi * deltaTime + kdpsi * (epsi - eapsi) / deltaTime;
+        accionYaw = kpPsi * ePsi + kiPsi * esPsi * deltaTime + kdPsi * (ePsi - eaPsi) / deltaTime;
         accionYaw = (accionYaw < tol && accionYaw > -tol) ? accionYaw = 0f : accionYaw; // Eliminamos pequeñas oscilaciones innecesarias.
 
         // Actualizamos el error anterior.
-        eapsi = epsi;
+        eaPsi = ePsi;
     }
 
-    public void AccionControlEmpuje(float deltaTime, float m, float g) 
+    public void AccionControlEmpuje(float refAltura, float deltaTime, float m, float g) 
     {
-
-        // Actualizamos la referencia de altitud.
-        raltura += kaltura * comandoEmpuje;
-        if (raltura < 0.807f)
-        {
-            raltura = 0.807f;
-        }
-
         // Error.
-        ealtura = (raltura - altBar.altura);
+        eAltura = (refAltura - altBar.altura);
 
         // Actualizamos la sumatoria de los errores.
-        esaltura += ealtura;
+        esAltura += eAltura;
 
         // Calculamos la acción de control.
-        accionEmpuje = m * g + kpaltura * ealtura + kialtura * esaltura * deltaTime + kdaltura * (ealtura - eaaltura) / deltaTime;
-        accionEmpuje = accionEmpuje < 0 ? accionEmpuje = 0 : accionEmpuje; // No hay empuje negativo.
+        accionEmpuje = m * g + kpAltura * eAltura + kiAltura * esAltura * deltaTime + kdAltura * (eAltura - eaAltura) / deltaTime;
+        accionEmpuje = accionEmpuje < 0.75f * m * g ? accionEmpuje = 0.75f * m * g : accionEmpuje; // No hay empuje menor que el planteado.
         accionEmpuje /= Mathf.Cos(imu.roll) * Mathf.Cos(imu.pitch); // Referenciamos a sistema B.
+
+        // Saturación. 
+       
+        if(accionEmpuje > 1.5f * m * g)
+        {
+            accionEmpuje = 1.5f * m * g; // No empujan mas de eso los motores.
+        }
         
         // Actualizamos el error anterior.
-        eaaltura = ealtura;
+        eaAltura = eAltura;
     }
 
     //---------------------------------------------------
-    // Computo de las velocidades de giro de los motores.
+    // Cómputo de las velocidades de giro de los motores.
     //---------------------------------------------------
 
     public void ComputarMotores(float deltaTime)
@@ -360,36 +498,80 @@ public class ControladorDeVuelo : MonoBehaviour
 
     }
 
-    //---------------------------------------------------------
-    // Método para computar todas las acciones del controlador.
-    //---------------------------------------------------------
+    //---------------------------------------------
+    // Métodos auxiliares para mejorar legibilidad.
+    //---------------------------------------------
+
+    private void ActualizarSensores(Rigidbody rb, Transform transformacion)
+    {
+        imu.ActualizacionGiroscopo(rb, transformacion);
+        altBar.ActualizarAltimetro(transformacion);
+        computadora.gps.ActualizarGPS(rb, transformacion);
+    }
+
+    private void ActualizarReferenciasAutomaticas(float deltaTime)
+    {
+        computadora.ActualizarApsi(imu.yaw);
+        computadora.ActualizarReferenciaActitud(refThetaMax, refPhiMax, deltaTime);
+    }
+
+    private void ComputarAccionesControl(float alturaRef, float rollRef, float pitchRef, float yawRef, float deltaTime, float m, float g)
+    {
+        AccionControlEmpuje(alturaRef, deltaTime, m, g);
+        AccionControlRoll(rollRef, deltaTime);
+        AccionControlPitch(pitchRef, deltaTime);
+        AccionControlYaw(yawRef, deltaTime);
+    }
+
+    private void ResetearReferencias()
+    {
+        rAltura = altBar.altura;
+        rTheta = 0f;
+        rPsi = imu.yaw;
+        rPhi = 0f;
+        accionEmpuje = 0f;
+        accionPitch = 0f;
+        accionYaw = 0f;
+        accionRoll = 0f;
+    }
+
+    //--------------------------------------------------------------------------------
+    // Método para computar las acciones del controlador en función de los requisitos.
+    //--------------------------------------------------------------------------------
 
     public void ComputarControlador(Rigidbody rb, Transform transformacion, float deltaTime, float m, float g)
     {
-        //---------------------------------------------------
-        // Actualización de valores de la IMU y el altímetro.
-        //---------------------------------------------------
+        // Actualización de valores de la IMU, altímetro y GPS.
+        ActualizarSensores(rb, transformacion);
 
-        imu.ActualizacionGiroscopo(rb, transformacion);
-        altBar.ActualizarAltimetro(transformacion);
+        if (onOff) // Si el control esta encendido...
+        {
+            if (manAut) // Si el mando es manual...
+            {
+                ActualizarReferenciasRC();
+                ComputarAccionesControl(rAltura, rPhi, rTheta, rPsi, deltaTime, m, g);
+            }
+            else // Si el mando es automático...
+            {
+                ActualizarReferenciasAutomaticas(deltaTime);
 
-        //-----------------------------------------------------
-        // Actualización de las acciones de control requeridas.
-        //-----------------------------------------------------
+                // Si no se alcanzó aun la rotación, solo giramos.
+                if (Mathf.Abs(computadora.rPsiComputadora - imu.yaw) > 0.1f)
+                {
+                    ComputarAccionesControl(computadora.rAlturaComputadora, 0f, 0f, computadora.rPsiComputadora, deltaTime, m, g);
+                }
+                else
+                {
+                    ComputarAccionesControl(computadora.rAlturaComputadora, computadora.rPhiComputadora, computadora.rThetaComputadora, computadora.rPsiComputadora, deltaTime, m, g);
+                }
+            }
 
-        AccionControlEmpuje(deltaTime, m, g);
-        AccionControlRoll(deltaTime);
-        AccionControlPitch(deltaTime);
-        AccionControlYaw(deltaTime);
-
-        //-------------------------------------------------
-        // Computamos velocidad de rotacion de los motores.
-        //-------------------------------------------------
-
-        ComputarMotores(deltaTime);
+            ComputarMotores(deltaTime);
+        }
+        else
+        {
+            // Actualizamos referencias para que cuando se encienda el control otra vez, se estabilice.
+            ResetearReferencias();
+        }
     }
-
-
-
-
 }

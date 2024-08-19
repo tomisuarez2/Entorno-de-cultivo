@@ -20,9 +20,9 @@ public class DinamicaDron : MonoBehaviour
     private float Ixx = 5e-3f;             // Momento de inercia del dron con respecto eje X, sistema B. [kg*m^2]
     private float Iyy = 5e-3f;             // Momento de inercia del dron con respecto eje Y, sistema B. [kg*m^2]
     private float Izz = 5e-3f;             // Momento de inercia del dron con respecto eje Z, sistema B. [kg*m^2]
-    private float b_dot_x = 0.25f;         // Coeficiente de fricción en el X, sistema E. [N*s/m]
-    private float b_dot_y = 0.25f;         // Coeficiente de fricción en el Y, sistema E. [N*s/m]
-    private float b_dot_z = 0.25f;         // Coeficiente de fricción en el Z, sistema E. [N*s/m]
+    private float bDotX = 0.25f;           // Coeficiente de fricción en el X, sistema E. [N*s/m]
+    private float bDotY = 0.25f;           // Coeficiente de fricción en el Y, sistema E. [N*s/m]
+    private float bDotZ = 0.25f;           // Coeficiente de fricción en el Z, sistema E. [N*s/m]
     private float[,] Mt;                   // Matriz de inercia traslacional.
     private float[,] invMt;                // Inversa de la matriz de inercia traslacional.
     private float[,] gt;                   // Vector de gravedad.
@@ -32,12 +32,12 @@ public class DinamicaDron : MonoBehaviour
     private float[,] f;                    // Vector de fuerzas actuantes en el sistema de referencia E producto de la rotacion de motores.
     private float[,] tauB;                 // Vector de torques actuantes en el sistema de referencia B producto de la rotacion de motores.
     private float[,] ff;                   // Vector de fuerzas de fricción en el sistema de referencia E producto del movimiento del aparato.
-    private float[,] tauf;                 // Vector de torques de fricción actuantes en el sistema de referencia B producto de la rotacion de motores.
-    private float[,] f_netas;              // fuerzas netas traslacionales actuantes en el sistema E.
-    private float[,] tau_netos;            // Torques netos actuantes en el sistema B.
-    private float[,] dot_eta;              // Velocidades angulares del dron en el sistema de referencia B.
-    private float[,] dotdot_xi;            // Aceleraciones traslacionales del dron en el sistema de referencia E.
-    private float[,] dotdot_eta;           // Aceleraciones angulares del dron en el sistema de referencia B.
+    private float[,] tauF;                 // Vector de torques de fricción actuantes en el sistema de referencia B producto de la rotacion de motores.
+    private float[,] fNetas;               // fuerzas netas traslacionales actuantes en el sistema E.
+    private float[,] tauNetos;             // Torques netos actuantes en el sistema B.
+    private float[,] dotEta;               // Velocidades angulares del dron en el sistema de referencia B.
+    private float[,] dotDotXi;             // Aceleraciones traslacionales del dron en el sistema de referencia E.
+    private float[,] dotDotEta;            // Aceleraciones angulares del dron en el sistema de referencia B.
 
     // Vectores para aplicar aceleración sobre rigid body.
     private Vector3 aceleracionLineal;     // Vector para aceleraciones lineales, respecto de E.
@@ -52,6 +52,8 @@ public class DinamicaDron : MonoBehaviour
 
     void Awake()
     {
+        // Incialización de variables.
+
         Time.fixedDeltaTime = 0.001f;
         deltaTime = Time.fixedDeltaTime; // Tiempo de simulación.
 
@@ -105,17 +107,17 @@ public class DinamicaDron : MonoBehaviour
 
         ff = new float[3, 1];
 
-        tauf = new float[3, 1];
+        tauF = new float[3, 1];
 
-        f_netas = new float[3, 1];
+        fNetas = new float[3, 1];
 
-        tau_netos = new float[3, 1];
+        tauNetos = new float[3, 1];
 
-        dot_eta = new float[3, 1];
+        dotEta = new float[3, 1];
 
-        dotdot_xi = new float[3, 1];
+        dotDotXi = new float[3, 1];
 
-        dotdot_eta = new float[3, 1];
+        dotDotEta = new float[3, 1];
     }
 
 
@@ -230,16 +232,16 @@ public class DinamicaDron : MonoBehaviour
     
     public void Actualizarff()
     { 
-        ff[0, 0] = b_dot_x * controlador.imu.tasaCambioXB; 
-        ff[1, 0] = b_dot_y * controlador.imu.tasaCambioYB; 
-        ff[2, 0] = b_dot_z * controlador.imu.tasaCambioZB;
+        ff[0, 0] = bDotX * controlador.imu.tasaCambioXB; 
+        ff[1, 0] = bDotY * controlador.imu.tasaCambioYB; 
+        ff[2, 0] = bDotZ * controlador.imu.tasaCambioZB;
     }
 
     public void Actualizardot_eta()
     {
-        dot_eta[0, 0] = controlador.imu.tasaCambioPitch;
-        dot_eta[1, 0] = controlador.imu.tasaCambioYaw;
-        dot_eta[2, 0] = controlador.imu.tasaCambioRoll;
+        dotEta[0, 0] = controlador.imu.tasaCambioPitch;
+        dotEta[1, 0] = controlador.imu.tasaCambioYaw;
+        dotEta[2, 0] = controlador.imu.tasaCambioRoll;
     }
 
     //---------------------------------------------------------
@@ -264,23 +266,23 @@ public class DinamicaDron : MonoBehaviour
         // Cálculo de las fuerzas y torque netos actuantes.
         //-------------------------------------------------
 
-        f_netas = OperacionesMatrices.SumaRestaResta(f, gt, ff);
-        tau_netos = OperacionesMatrices.SumaRestaResta(tauB, OperacionesMatrices.Producto(Cr, dot_eta), tauf);
+        fNetas = OperacionesMatrices.SumaRestaResta(f, gt, ff);
+        tauNetos = OperacionesMatrices.SumaRestaResta(tauB, OperacionesMatrices.Producto(Cr, dotEta), tauF);
 
         //-------------------------------------------
         // Cálculo de las consecuentes aceleraciones.
         //-------------------------------------------
 
-        dotdot_xi = OperacionesMatrices.Producto(invMt, f_netas);
-        dotdot_eta = OperacionesMatrices.Producto(invMr, tau_netos);
+        dotDotXi = OperacionesMatrices.Producto(invMt, fNetas);
+        dotDotEta = OperacionesMatrices.Producto(invMr, tauNetos);
 
-        aceleracionLineal.x = dotdot_xi[0, 0];
-        aceleracionLineal.y = dotdot_xi[1, 0];
-        aceleracionLineal.z = dotdot_xi[2, 0];
+        aceleracionLineal.x = dotDotXi[0, 0];
+        aceleracionLineal.y = dotDotXi[1, 0];
+        aceleracionLineal.z = dotDotXi[2, 0];
 
-        aceleracionAngular.x = dotdot_eta[0, 0] * Mathf.Cos(controlador.imu.roll) + dotdot_eta[1, 0] * Mathf.Cos(controlador.imu.pitch) * Mathf.Sin(controlador.imu.roll);
-        aceleracionAngular.y = -dotdot_eta[0, 0] * Mathf.Sin(controlador.imu.roll) + dotdot_eta[1, 0] * Mathf.Cos(controlador.imu.pitch) * Mathf.Cos(controlador.imu.roll);
-        aceleracionAngular.z = -dotdot_eta[1, 0] * Mathf.Sin(controlador.imu.pitch) + dotdot_eta[2, 0];
+        aceleracionAngular.x = dotDotEta[0, 0] * Mathf.Cos(controlador.imu.roll) + dotDotEta[1, 0] * Mathf.Cos(controlador.imu.pitch) * Mathf.Sin(controlador.imu.roll);
+        aceleracionAngular.y = -dotDotEta[0, 0] * Mathf.Sin(controlador.imu.roll) + dotDotEta[1, 0] * Mathf.Cos(controlador.imu.pitch) * Mathf.Cos(controlador.imu.roll);
+        aceleracionAngular.z = -dotDotEta[1, 0] * Mathf.Sin(controlador.imu.pitch) + dotDotEta[2, 0];
 
         aceleracionAngular *= Mathf.Rad2Deg; // Pasamos a grados, addTorque usa grados.
     }

@@ -6,7 +6,7 @@
             "id": "52bd17b5-ac09-4c43-854a-469e184f264b",
             "actions": [
                 {
-                    "name": "ComandoEmpujeYaw",
+                    "name": "ComandoAltitudYaw",
                     "type": "Value",
                     "id": "40d1e860-01c7-4d2b-9e89-a8c0097f222f",
                     "expectedControlType": "Vector2",
@@ -31,6 +31,33 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "ControladorOnOff",
+                    "type": "Button",
+                    "id": "7154926e-5ae3-4255-aa8f-238d68249963",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "PosicionAutomatica",
+                    "type": "Button",
+                    "id": "15f33e80-3b48-4aa4-a415-7d664a99c12c",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "RetornoHome",
+                    "type": "Button",
+                    "id": "f41e8c88-4d36-4d2c-a0ca-c1214047ef30",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -41,7 +68,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "ComandoEmpujeYaw",
+                    "action": "ComandoAltitudYaw",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -52,7 +79,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "ComandoEmpujeYaw",
+                    "action": "ComandoAltitudYaw",
                     "isComposite": true,
                     "isPartOfComposite": false
                 },
@@ -63,7 +90,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "ComandoEmpujeYaw",
+                    "action": "ComandoAltitudYaw",
                     "isComposite": false,
                     "isPartOfComposite": true
                 },
@@ -74,7 +101,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "ComandoEmpujeYaw",
+                    "action": "ComandoAltitudYaw",
                     "isComposite": false,
                     "isPartOfComposite": true
                 },
@@ -85,7 +112,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "ComandoEmpujeYaw",
+                    "action": "ComandoAltitudYaw",
                     "isComposite": false,
                     "isPartOfComposite": true
                 },
@@ -96,7 +123,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "ComandoEmpujeYaw",
+                    "action": "ComandoAltitudYaw",
                     "isComposite": false,
                     "isPartOfComposite": true
                 },
@@ -174,6 +201,39 @@
                     "processors": "",
                     "groups": "",
                     "action": "Pulverizador",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "09221bf1-8a79-47bb-ac8b-a38be15cde41",
+                    "path": "<Keyboard>/c",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ControladorOnOff",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "0aad2d5b-018c-43d3-83cf-8c379b71fab4",
+                    "path": "<Keyboard>/x",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "PosicionAutomatica",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "b5c147dc-34e2-4dfb-a0db-0521eb4f25c6",
+                    "path": "<Keyboard>/h",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "RetornoHome",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

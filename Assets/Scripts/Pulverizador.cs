@@ -9,7 +9,7 @@ public class Pulverizador : MonoBehaviour
     // Atributos.
     //===========
 
-    private bool flagApertura = false; // Flag para prender o apagar el sistema de pulverizado.
+    public bool flagApertura = false;
 
     public ParticleSystem[] sprayParticleSystem;
 
@@ -31,11 +31,8 @@ public class Pulverizador : MonoBehaviour
     // Método para prender o apagar el pulverizador.
     //----------------------------------------------
 
-    private void OnPulverizador()
+    public void AbrirCerrarPulverizador()
     {
-        
-        flagApertura = flagApertura ^ true; // Cada vez que se llama el método, cambiamos el valor del flag.
-        
         if (flagApertura)
         {
             for (int i = 0; i < 4; i++)
@@ -51,6 +48,8 @@ public class Pulverizador : MonoBehaviour
             }
         }
     }
+
+
 
 
 }
